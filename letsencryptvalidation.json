@@ -1,0 +1,175 @@
+{
+    "kind": "Template",
+    "apiVersion": "v1",
+    "metadata": {
+        "name": "letsencryptvalidation",
+        "creationTimestamp": null
+    },
+    "objects": [
+        {
+            "kind": "DeploymentConfig",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "letsencryptvalidator",
+                "generation": 1,
+                "creationTimestamp": null,
+                "labels": {
+                    "app": "letsencryptvalidator"
+                },
+                "annotations": {
+                    "openshift.io/generated-by": "OpenShiftWebConsole"
+                }
+            },
+            "spec": {
+                "strategy": {
+                    "type": "Rolling",
+                    "rollingParams": {
+                        "updatePeriodSeconds": 1,
+                        "intervalSeconds": 1,
+                        "timeoutSeconds": 600,
+                        "maxUnavailable": "25%",
+                        "maxSurge": "25%"
+                    },
+                    "resources": {},
+                    "activeDeadlineSeconds": 21600
+                },
+                "triggers": [
+                    {
+                        "type": "ConfigChange"
+                    },
+                    {
+                        "type": "ImageChange",
+                        "imageChangeParams": {
+                            "automatic": true,
+                            "containerNames": [
+                                "letsencryptvalidator"
+                            ],
+                            "from": {
+                                "kind": "ImageStreamTag",
+                                "namespace": "letsencryptvalidation",
+                                "name": "letsencryptvalidator:latest"
+                            }
+                        }
+                    }
+                ],
+                "replicas": 1,
+                "test": false,
+                "selector": {
+                    "app": "letsencryptvalidator",
+                    "deploymentconfig": "letsencryptvalidator"
+                },
+                "template": {
+                    "metadata": {
+                        "creationTimestamp": null,
+                        "labels": {
+                            "app": "letsencryptvalidator",
+                            "deploymentconfig": "letsencryptvalidator"
+                        },
+                        "annotations": {
+                            "openshift.io/generated-by": "OpenShiftWebConsole"
+                        }
+                    },
+                    "spec": {
+                        "containers": [
+                            {
+                                "name": "letsencryptvalidator",
+                                "image": "",
+                                "ports": [
+                                    {
+                                        "containerPort": 8080,
+                                        "protocol": "TCP"
+                                    }
+                                ],
+                                "env": [
+                                    {
+                                        "name": "VALIDATION_STRING",
+                                        "value": "${VALIDATION_STRING}"
+                                    }
+                                ],
+                                "resources": {},
+                                "terminationMessagePath": "/dev/termination-log",
+                                "terminationMessagePolicy": "File",
+                                "imagePullPolicy": "Always"
+                            }
+                        ],
+                        "restartPolicy": "Always",
+                        "terminationGracePeriodSeconds": 30,
+                        "dnsPolicy": "ClusterFirst",
+                        "securityContext": {},
+                        "schedulerName": "default-scheduler"
+                    }
+                }
+            }
+        },
+        {
+            "kind": "Route",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "letsencryptvalidator",
+                "creationTimestamp": null,
+                "labels": {
+                    "app": "letsencryptvalidator"
+                },
+                "annotations": {
+                    "openshift.io/host.generated": "true"
+                }
+            },
+            "spec": {
+                "host": "${VALIDATION_HOST_NAME}",
+                "to": {
+                    "kind": "Service",
+                    "name": "letsencryptvalidator",
+                    "weight": 100
+                },
+                "port": {
+                    "targetPort": "8080-tcp"
+                },
+                "wildcardPolicy": "None"
+            }
+        },
+        {
+            "kind": "Service",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "letsencryptvalidator",
+                "creationTimestamp": null,
+                "labels": {
+                    "app": "letsencryptvalidator"
+                },
+                "annotations": {
+                    "openshift.io/generated-by": "OpenShiftWebConsole"
+                }
+            },
+            "spec": {
+                "ports": [
+                    {
+                        "name": "8080-tcp",
+                        "protocol": "TCP",
+                        "port": 8080,
+                        "targetPort": 8080
+                    }
+                ],
+                "selector": {
+                    "deploymentconfig": "letsencryptvalidator"
+                },
+                "type": "ClusterIP",
+                "sessionAffinity": "None"
+            }
+        }
+    ],
+     "parameters": [
+        {
+            "description": "Host name that the cert will use",
+            "displayName": "Cert Host Name",
+            "name": "VALIDATION_HOST_NAME",
+            "required": true
+        },
+	{
+    	"description": "String provided by cert bot to be used for validation",
+    	"displayName": "Validation String",
+    	"name": "VALIDATION_STRING",
+    	"required": true
+	}
+
+   ]
+}

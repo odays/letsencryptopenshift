@@ -1,0 +1,11 @@
+{
+  "name": "letsencryptvalidator",
+  "version": "1.0.0",
+  "description": "Http server to respond as required to a lets encrypt request",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
